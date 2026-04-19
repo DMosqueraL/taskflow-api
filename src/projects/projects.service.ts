@@ -10,18 +10,24 @@ export class ProjectsService {
     private readonly prisma: PrismaService
   ) { }
 
-  async create(createProjectDto: CreateProjectDto) {
-    const project = await this.prisma.project.create({
-      data: createProjectDto,
+  async create(createProjectDto: CreateProjectDto, user: any) {
+    return this.prisma.project.create({
+      data: {
+        name: createProjectDto.name,
+        description: createProjectDto.description,
+        organization: {
+          connect: { id: user.organizationId },
+        },
+      },
     });
-    return project;
   }
 
-  async findAll() {
-
-    return await this.prisma.project.findMany();
+  async findAll(user: any) {
+    return this.prisma.project.findMany({
+      where: { organizationId: user.organizationId },
+    });
   }
-  
+
   async findOne(id: string) {
     const project = await this.prisma.project.findUnique({
       where: {

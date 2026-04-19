@@ -13,26 +13,28 @@ export class TasksService {
   ) { }
 
 
-  async create(projectId: string, createTaskDto: CreateTaskDto) {
-    await this.projectsService.findOne(projectId);
-    const task = await this.prisma.task.create({
+  async create(projectId: string, createTaskDto: CreateTaskDto, user: any) {
+    // Verificar que el proyecto pertenezca a la organización del usuario
+    const project = await this.projectsService.findOne(projectId);
+    if (project.organizationId !== user.organizationId) {
+      throw new NotFoundException('Project not found');
+    }
+    return this.prisma.task.create({
       data: {
-        ...createTaskDto, project: {
-          connect: { id: projectId },
-        }
+        ...createTaskDto,
+        project: { connect: { id: projectId } },
       },
     });
-    return task;
   }
 
-  async findAll(projectId: string) {
-    await this.projectsService.findOne(projectId);
-    const tasks = await this.prisma.task.findMany({
-      where: {
-        projectId,
-      },
+  async findAll(projectId: string, user: any) {
+    const project = await this.projectsService.findOne(projectId);
+    if (project.organizationId !== user.organizationId) {
+      throw new NotFoundException('Project not found');
+    }
+    return this.prisma.task.findMany({
+      where: { projectId },
     });
-    return tasks;
   }
 
   async findOne(id: string) {

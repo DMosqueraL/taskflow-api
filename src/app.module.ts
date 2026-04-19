@@ -5,13 +5,14 @@ import { TasksModule } from './tasks/tasks.module';
 import { ProjectsModule } from './projects/projects.module';
 import { CommonModule } from './common/common.module';
 import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     TasksModule, 
     ProjectsModule, 
-    CommonModule
+    CommonModule, AuthModule
   ],
   controllers: [AppController],
   providers: [AppService],

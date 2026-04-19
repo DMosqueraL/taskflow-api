@@ -1,4 +1,4 @@
-import { PrismaClient, TaskStatus, TaskPriority } from '../generated/prisma/client';
+import { PrismaClient, TaskStatus, TaskPriority, Role } from '../generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as pg from 'pg';
 import 'dotenv/config';
@@ -12,23 +12,51 @@ async function main() {
   await prisma.task.deleteMany();
   await prisma.project.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.organization.deleteMany();
 
-  // Crear usuarios
+  // Crear organizaciones
+  const org1 = await prisma.organization.create({
+    data: { name: 'Acme Corp' },
+  });
+  const org2 = await prisma.organization.create({
+    data: { name: 'Startup XYZ' },
+  });
+
+  // Crear usuarios (contraseñas hasheadas después con bcrypt, por ahora placeholder)
   const user1 = await prisma.user.create({
-    data: { name: 'Doris Mosquera', email: 'doris@taskflow.com' },
+    data: {
+      name: 'Doris Mosquera',
+      email: 'doris@acme.com',
+      password: '$2b$10$dn8Sra/oJfwi2mT6kM7oX.gu1QsXfO94Qo9w1SA8vdz4A8IVxXYAK',
+      role: Role.ADMIN,
+      organizationId: org1.id,
+    },
   });
   const user2 = await prisma.user.create({
-    data: { name: 'Carlos López', email: 'carlos@taskflow.com' },
+    data: {
+      name: 'Carlos López',
+      email: 'carlos@acme.com',
+      password: '$2b$10$dn8Sra/oJfwi2mT6kM7oX.gu1QsXfO94Qo9w1SA8vdz4A8IVxXYAK',
+      role: Role.LEADER,
+      organizationId: org1.id,
+    },
   });
   const user3 = await prisma.user.create({
-    data: { name: 'Ana García', email: 'ana@taskflow.com' },
+    data: {
+      name: 'Ana García',
+      email: 'ana@startup.com',
+      password: '$2b$10$dn8Sra/oJfwi2mT6kM7oX.gu1QsXfO94Qo9w1SA8vdz4A8IVxXYAK',
+      role: Role.ADMIN,
+      organizationId: org2.id,
+    },
   });
 
-  // Crear proyectos con miembros
+  // Crear proyectos (cada uno en su organización)
   const project1 = await prisma.project.create({
     data: {
       name: 'TaskFlow API',
       description: 'Gestor de proyectos SaaS',
+      organizationId: org1.id,
       members: { connect: [{ id: user1.id }, { id: user2.id }] },
     },
   });
@@ -36,7 +64,8 @@ async function main() {
     data: {
       name: 'Landing Page',
       description: 'Sitio web de marketing',
-      members: { connect: [{ id: user2.id }, { id: user3.id }] },
+      organizationId: org2.id,
+      members: { connect: [{ id: user3.id }] },
     },
   });
 

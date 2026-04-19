@@ -59,7 +59,7 @@ src/
 - Relaciones: proyecto → tareas (1:N), usuario ↔ proyectos (N:M)
 - Migraciones, seed, config por ambiente
 
-### Nivel 4 — Auth y permisos
+### Nivel 4 ✅ — Auth y permisos
 - Registro, login, JWT (access + refresh token)
 - Modelo Organization (multi-tenant)
 - Guards: AuthGuard, RolesGuard
@@ -138,7 +138,7 @@ npm run test:cov           # Cobertura
 - Formato de commits: `feat: Nivel X - descripción`
 - Repositorio: https://github.com/DMosqueraL/taskflow-api
 
-## Nivel actual: 3 ✅ (completado)
+## Nivel actual: 4 ✅ (completado)
 
 ## Notas importantes
 - `moduleFormat = "commonjs"` para compatibilidad NestJS
