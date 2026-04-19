@@ -48,7 +48,7 @@ src/
 - Relación projects → tasks vía projectId
 - Endpoints: `/projects`, `/projects/:projectId/tasks`, `/tasks/:id`
 
-### Nivel 2 — Arquitectura modular
+### Nivel 2 ✅ — Arquitectura modular
 - CommonModule con servicios compartidos
 - Filtro de excepción global (formato estándar de error)
 - Pipe de validación de UUID
