@@ -4,9 +4,15 @@ import { AppService } from './app.service';
 import { TasksModule } from './tasks/tasks.module';
 import { ProjectsModule } from './projects/projects.module';
 import { CommonModule } from './common/common.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [TasksModule, ProjectsModule, CommonModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    TasksModule, 
+    ProjectsModule, 
+    CommonModule
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
