@@ -138,7 +138,7 @@ npm run test:cov           # Cobertura
 - Formato de commits: `feat: Nivel X - descripción`
 - Repositorio: https://github.com/DMosqueraL/taskflow-api
 
-## Nivel actual: 1 ✅ (completado)
+## Nivel actual: 3 ✅ (completado)
 
 ## Notas importantes
 - `moduleFormat = "commonjs"` para compatibilidad NestJS
