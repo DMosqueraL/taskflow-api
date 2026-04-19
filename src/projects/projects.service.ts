@@ -1,24 +1,26 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
-import { v4 as uuidv4 } from 'uuid';
 import { Project } from './entities/project.entity';
+import { IdGeneratorService } from '../common/services/id-generator.service';
 
 @Injectable()
 export class ProjectsService {
 
   private projects: Project[] = []; //Nivel 1
 
-  constructor() {
+  constructor(
+    private readonly idGenerator: IdGeneratorService
+  ) {
     //Nivel1
     const p1 = new Project();
-    p1.id = uuidv4();
+    p1.id = this.idGenerator.generateId();
     p1.name = 'Project 1';
     p1.description = 'Description for project 1';
     p1.createdAt = new Date();
-    
+
     const p2 = new Project();
-    p2.id = uuidv4();
+    p2.id = this.idGenerator.generateId();
     p2.name = 'Project 2';
     p2.description = 'Description for project 2';
     p2.createdAt = new Date();
@@ -28,7 +30,7 @@ export class ProjectsService {
 
   create(createProjectDto: CreateProjectDto) {
     const project = new Project();
-    project.id = uuidv4();
+    project.id = this.idGenerator.generateId();
     project.name = createProjectDto.name; 
     project.createdAt = new Date();
     if (createProjectDto.description) {

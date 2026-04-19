@@ -3,21 +3,25 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task, TaskStatus } from './entities/task.entity';
 import { ProjectsService } from '../projects/projects.service';
-import { v4 as uuidv4 } from 'uuid'
+import { IdGeneratorService } from '../common/services/id-generator.service';
 
 @Injectable()
 export class TasksService {
 
   private tasks: Task[] = []
 
-  constructor(private readonly projectsService: ProjectsService) { }
+  constructor(
+    private readonly projectsService: ProjectsService,
+    private readonly idGenerator: IdGeneratorService
+  ) { }
+
 
   create(projectId: string, createTaskDto: CreateTaskDto) {
 
     this.projectsService.findOne(projectId);
 
     const task = new Task();
-    task.id = uuidv4();
+    task.id = this.idGenerator.generateId();
     task.title = createTaskDto.title;
     task.status = createTaskDto.status ?? TaskStatus.PENDING;
     task.priority = createTaskDto.priority
