@@ -53,7 +53,7 @@ src/
 - Filtro de excepción global (formato estándar de error)
 - Pipe de validación de UUID
 
-### Nivel 3 — Base de datos real
+### Nivel 3 ✅ — Base de datos real
 - Prisma + PostgreSQL
 - Modelos: Project, Task, User (sin auth)
 - Relaciones: proyecto → tareas (1:N), usuario ↔ proyectos (N:M)
