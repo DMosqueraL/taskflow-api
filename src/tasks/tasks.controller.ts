@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, UseGuards, Query } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
@@ -7,11 +7,12 @@ import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { Role } from 'generated/prisma/client';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Controller()
 @UseGuards(AuthGuard, RolesGuard)
 export class TasksController {
-  constructor(private readonly tasksService: TasksService) {}
+  constructor(private readonly tasksService: TasksService) { }
 
   @Post('projects/:projectId/tasks')
   @Roles(Role.ADMIN, Role.LEADER)
@@ -19,9 +20,9 @@ export class TasksController {
     return this.tasksService.create(projectId, createTaskDto, user);
   }
 
- @Get('projects/:projectId/tasks')
-  findAll(@Param('projectId', ParseUUIDPipe) projectId: string, @CurrentUser() user) {
-    return this.tasksService.findAll(projectId, user);
+  @Get('projects/:projectId/tasks')
+  findAll(@Param('projectId', ParseUUIDPipe) projectId: string, @CurrentUser() user, @Query() paginationDto: PaginationDto,) {
+    return this.tasksService.findAll(projectId, user, paginationDto);
   }
 
   @Get('tasks/:id')

@@ -67,7 +67,7 @@ src/
 - Decorador @CurrentUser()
 - Filtrado por organizationId
 
-### Nivel 5 — Pulir y testear
+### Nivel 5 ✅ — Pulir y testear
 - Interceptor de respuesta estándar: { success, data, meta }
 - Paginación genérica
 - Soft deletes
@@ -138,7 +138,7 @@ npm run test:cov           # Cobertura
 - Formato de commits: `feat: Nivel X - descripción`
 - Repositorio: https://github.com/DMosqueraL/taskflow-api
 
-## Nivel actual: 4 ✅ (completado)
+## Nivel actual: 5 ✅ (completado)
 
 ## Notas importantes
 - `moduleFormat = "commonjs"` para compatibilidad NestJS

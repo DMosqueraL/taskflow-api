@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, UseGuards, Query } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
@@ -7,11 +7,12 @@ import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { Role, User } from 'generated/prisma/client';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Controller('projects')
 @UseGuards(AuthGuard, RolesGuard)
 export class ProjectsController {
-  constructor(private readonly projectsService: ProjectsService) {}
+  constructor(private readonly projectsService: ProjectsService) { }
 
   @Post()
   @Roles(Role.ADMIN, Role.LEADER)
@@ -20,8 +21,8 @@ export class ProjectsController {
   }
 
   @Get()
-  findAll(@CurrentUser() user) {
-    return this.projectsService.findAll(user);
+  findAll(@Query() paginationDto: PaginationDto, @CurrentUser() user) {
+    return this.projectsService.findAll(user, paginationDto);
   }
 
   @Get(':id')

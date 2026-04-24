@@ -3,6 +3,7 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { ProjectsService } from '../projects/projects.service';
 import { PrismaService } from '../common/services/prisma.service';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Injectable()
 export class TasksService {
@@ -27,20 +28,41 @@ export class TasksService {
     });
   }
 
-  async findAll(projectId: string, user: any) {
+  async findAll(projectId: string, user: any, paginationDto: PaginationDto) {
     const project = await this.projectsService.findOne(projectId);
     if (project.organizationId !== user.organizationId) {
       throw new NotFoundException('Project not found');
     }
-    return this.prisma.task.findMany({
-      where: { projectId },
-    });
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await Promise.all([
+      this.prisma.task.findMany({
+        where: { projectId, deletedAt: null },
+        skip,
+        take: limit,
+      }),
+      this.prisma.task.count({
+        where: { project, deletedAt: null },
+      }),
+    ]);
+
+    return {
+      data,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findOne(id: string) {
-    const task = await this.prisma.task.findUnique({
+    const task = await this.prisma.task.findFirst({
       where: {
         id,
+        deletedAt: null,
       },
     });
     if (!task) {
@@ -59,11 +81,11 @@ export class TasksService {
 
   async remove(id: string) {
     await this.findOne(id);
-    await this.prisma.task.delete({
-      where: {
-        id,
+    return await this.prisma.task.update({
+      where: { id },
+      data: {
+        deletedAt: new Date(),
       },
     });
-    return { message: 'Task deleted successfully' };
   }
 }

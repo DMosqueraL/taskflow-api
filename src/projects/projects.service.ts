@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { PrismaService } from '../common/services/prisma.service';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -22,16 +23,37 @@ export class ProjectsService {
     });
   }
 
-  async findAll(user: any) {
-    return this.prisma.project.findMany({
-      where: { organizationId: user.organizationId },
-    });
+  async findAll(user: any, paginationDto: PaginationDto) {
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await Promise.all([
+      this.prisma.project.findMany({
+        where: { organizationId: user.organizationId, deletedAt: null },
+        skip,
+        take: limit,
+      }),
+      this.prisma.project.count({
+        where: { organizationId: user.organizationId, deletedAt: null },
+      }),
+    ]);
+
+    return {
+      data,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findOne(id: string) {
-    const project = await this.prisma.project.findUnique({
+    const project = await this.prisma.project.findFirst({
       where: {
         id,
+        deletedAt: null,
       },
     });
     if (!project) {
@@ -50,12 +72,12 @@ export class ProjectsService {
 
   async remove(id: string) {
     await this.findOne(id);
-    await this.prisma.project.delete({
-      where: {
-        id,
+    return await this.prisma.project.update({
+      where: { id },
+      data: {
+        deletedAt: new Date(),
       },
     });
-    return { message: 'Project deleted successfully' };
   }
 }
 
