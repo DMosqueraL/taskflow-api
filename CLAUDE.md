@@ -88,7 +88,7 @@ src/
 - Health checks
 - Dockerfile multi-stage
 
-### Nivel 8 — Producción real
+### Nivel 8 ✅ — Producción real
 - Clean architecture
 - Eventos de dominio
 - WebSockets (tiempo real)
@@ -138,9 +138,64 @@ npm run test:cov           # Cobertura
 - Formato de commits: `feat: Nivel X - descripción`
 - Repositorio: https://github.com/DMosqueraL/taskflow-api
 
-## Nivel actual: 7 ✅ (completado)
+## Nivel actual: 8 ✅ (completado)
+
+## Deploy a Render
+
+### Paso 1 — Crear PostgreSQL
+1. Dashboard → New → Postgres
+2. Name: `taskflow-db`, Plan: Free
+3. Copiar Internal Database URL
+
+### Paso 2 — Crear Redis
+1. Dashboard → New → Key Value
+2. Name: `taskflow-redis`, Plan: Free
+3. Copiar Internal Redis URL (solo el hostname para REDIS_HOST)
+
+### Paso 3 — Crear Web Service
+1. Dashboard → New → Web Service
+2. Conectar repo: `DMosqueraL/taskflow-api`
+3. Language: Docker, Branch: main, Plan: Free
+
+### Paso 4 — Variables de entorno
+```bash
+DATABASE_URL=<Internal Database URL de PostgreSQL>
+REDIS_HOST=<hostname de Redis sin redis:// ni puerto>
+REDIS_PORT=6379
+JWT_SECRET=<secreto de producción>
+JWT_REFRESH_SECRET=<otro secreto de producción>
+PORT=3005
+```
+
+### Paso 5 — Verificar
+- URL pública: `https://taskflow-api-XXXX.onrender.com/health`
+- Logs: Dashboard → Logs
+- Auto-deploy: cada push a main despliega automáticamente
+
+## Bonus — Frontend (Next.js)
+
+### Stack
+- Next.js 14+ (App Router)
+- Tailwind CSS
+- Socket.io client (WebSockets)
+- Deploy en Vercel
+
+### Páginas
+1. `/login` — formulario que consume POST /auth/login
+2. `/dashboard` — métricas: total proyectos, tareas por estado, tareas atrasadas
+3. `/projects` — lista de proyectos con paginación
+4. `/projects/:id` — tablero Kanban (columnas: PENDING, IN_PROGRESS, DONE)
+5. Drag & drop para cambiar estado de tareas
+6. WebSocket para actualización en tiempo real
+
+### API Base URL
+- Local: http://localhost:3005
+- Producción: https://taskflow-api-sg4x.onrender.com
+
+### Estado: pendiente
 
 ## Notas importantes
 - `moduleFormat = "commonjs"` para compatibilidad NestJS
 - Cada nivel se construye sobre el anterior — no se descarta código, se evoluciona
 - El proyecto es de aprendizaje: priorizar comprensión sobre velocidad
+- Clean Architecture: para cambiar de ORM, solo modificar `useClass` en el module del módulo refactorizado (ej: `useClass: TypeOrmProjectRepository` en projects.module.ts). El dominio y los controllers no se tocan.
