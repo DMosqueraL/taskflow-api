@@ -13,37 +13,52 @@ import { BullModule } from '@nestjs/bullmq';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
 import { AttachmentsModule } from './attachments/attachments.module';
+import { HealthModule } from './health/health.module';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
-  imports: [CacheModule.registerAsync({
-    isGlobal: true,
-    useFactory: async () => ({
-      store: await redisStore({
-        socket: {
-          host: process.env.REDIS_HOST || 'localhost',
-          port: parseInt(process.env.REDIS_PORT ?? '6379'),
-        },
-        ttl: 30000, // 30 segundos en milisegundos
+  imports: [
+    ThrottlerModule.forRoot([{
+      ttl: 60000,    // ventana de 60 segundos
+      limit: 30,     // máximo 30 requests por ventana
+    }]),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      useFactory: async () => ({
+        store: await redisStore({
+          socket: {
+            host: process.env.REDIS_HOST || 'localhost',
+            port: parseInt(process.env.REDIS_PORT ?? '6379'),
+          },
+          ttl: 30000, // 30 segundos en milisegundos
+        }),
       }),
     }),
-  }),
-  BullModule.forRoot({
-    connection: {
-      host: process.env.REDIS_HOST || 'localhost',
-      port: parseInt(process.env.REDIS_PORT ?? '6379'),
-    },
-  }),
-  ConfigModule.forRoot({ isGlobal: true }),
+    BullModule.forRoot({
+      connection: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT ?? '6379'),
+      },
+    }),
+    ConfigModule.forRoot({ isGlobal: true }),
     TasksModule,
     ProjectsModule,
     CommonModule,
     AuthModule,
     CommentsModule,
     NotificationsModule,
-    AttachmentsModule
+    AttachmentsModule,
+    HealthModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

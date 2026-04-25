@@ -49,8 +49,8 @@ npm uninstall paquete          # Desinstalar un paquete
 
 ```bash
 # Nivel 1 — Validación
-npm i class-validator class-transformer uuid
-npm i -D @types/uuid
+npm i class-validator class-transformer
+# uuid reemplazado por crypto.randomUUID() nativo de Node
 
 # Nivel 3 — Base de datos
 npm i @prisma/client @prisma/adapter-pg pg dotenv
@@ -59,6 +59,58 @@ npm i -D prisma @types/pg tsx
 # Nivel 4 — Auth
 npm i @nestjs/jwt @nestjs/passport passport passport-jwt bcrypt @nestjs/config
 npm i -D @types/passport-jwt @types/bcrypt
+
+# Nivel 5 — Testing
+npm i -D @types/jest
+
+# Nivel 6 — Features de producto real
+npm i @nestjs/bullmq bullmq                                    # Colas con BullMQ
+npm i @nestjs/cache-manager cache-manager cache-manager-redis-yet  # Caché con Redis
+npm i @nestjs/platform-express multer                           # Upload de archivos
+npm i -D @types/multer supertest @types/supertest cross-env     # Testing e2e y utilidades
+
+# Nivel 7 — Escalar la arquitectura
+npm i @nestjs/swagger                         # Documentación OpenAPI/Swagger
+npm i @nestjs/terminus                        # Health checks
+npm i @nestjs/throttler                       # Rate limiting
+```
+
+## Docker
+
+```bash
+# Instalación y manejo de containers
+docker run -d --name redis -p 6379:6379 redis    # Crear y levantar container de Redis
+docker ps                                        # Ver containers corriendo
+docker start redis                               # Iniciar container existente
+docker stop redis                                # Detener container
+docker rm redis                                  # Eliminar container
+docker logs redis                                # Ver logs de un container
+
+# Docker Compose (Nivel 7+)
+docker compose up -d                             # Levantar todos los servicios en background
+docker compose down                              # Detener y eliminar todos los servicios
+docker compose logs -f                           # Ver logs en tiempo real
+docker compose build                             # Reconstruir imágenes
+docker compose ps                                # Ver estado de los servicios
+
+# Docker Build
+docker build -t taskflow-api .                   # Construir imagen
+docker build -t taskflow-api -f Dockerfile .     # Construir con Dockerfile específico
+```
+
+## PostgreSQL (psql)
+
+```bash
+psql -U postgres -d taskflow_dev                 # Conectar a la BD
+```
+
+```sql
+-- Dentro de psql:
+SELECT id, name FROM "Project";                  -- Consultar tabla
+SELECT id, name, email FROM "User";              -- Ver usuarios
+\dt                                              -- Listar todas las tablas
+\d "NombreTabla"                                 -- Ver estructura de una tabla
+\q                                               -- Salir de psql
 ```
 
 ## Git
@@ -98,13 +150,28 @@ node -e "código"                            # Ejecutar código JS en una línea
 node -e "const bcrypt = require('bcrypt'); bcrypt.hash('admin123', 10).then(h => console.log(h))"
 ```
 
+## Windows — Solución de problemas
+
+```powershell
+# Tomar posesión de una carpeta (permisos)
+takeown /f "C:\ruta\carpeta" /r /d S
+
+# Eliminar carpeta con contenido
+Remove-Item "C:\ruta\carpeta" -Recurse -Force
+
+# Actualizar WSL (necesario para Docker)
+wsl --update
+```
+
 ## VSCode — Atajos útiles
 
 ```
 Ctrl + H            # Buscar y reemplazar
+Ctrl + Shift + F    # Buscar en todos los archivos del proyecto
 Ctrl + Shift + P    # Paleta de comandos
 Ctrl + P            # Buscar archivo por nombre
 Ctrl + `            # Abrir/cerrar terminal integrada
+Ctrl + .            # Quick fix / auto-import
 ```
 
 ## Windows PowerShell
@@ -112,4 +179,5 @@ Ctrl + `            # Abrir/cerrar terminal integrada
 ```bash
 ls src/ -R           # Listar archivos recursivamente
 rm -r carpeta        # Eliminar carpeta con contenido
+mkdir carpeta        # Crear carpeta
 ```

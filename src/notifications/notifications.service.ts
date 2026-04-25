@@ -1,21 +1,14 @@
-import { InjectQueue } from "@nestjs/bullmq";
-import { Injectable } from "@nestjs/common";
-import { Queue } from "bullmq";
+import { Injectable, Inject } from '@nestjs/common';
+import { ClientProxy } from '@nestjs/microservices';
 
 @Injectable()
 export class NotificationsService {
-    constructor(
 
-        @InjectQueue("notifications") private readonly notificationsQueue: Queue,
+  constructor(
+    @Inject('NOTIFICATIONS_SERVICE') private readonly client: ClientProxy,
+  ) {}
 
-    ) {}
-
-    async sendTaskAssigned(taskTitle: string, assignedToEmail: string) {
-        await this.notificationsQueue.add("task-assigned", {
-            taskTitle,
-            assignedToEmail,
-            timestamp: new Date().toISOString(),
-        });
-    }
-
+  async sendTaskAssigned(taskTitle: string, assignedToEmail: string) {
+    this.client.emit('task_assigned', { taskTitle, assignedToEmail });
+  }
 }

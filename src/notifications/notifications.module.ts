@@ -1,18 +1,19 @@
-import { Module } from "@nestjs/common";
-import { BullModule } from "@nestjs/bullmq";
+import { Module } from '@nestjs/common';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 import { NotificationsService } from './notifications.service';
-import { NotificationsProcessor } from './notifications.processor';
 
 @Module({
   imports: [
-    BullModule.registerQueue({
-      name: "notifications",
-    }),
+    ClientsModule.register([{
+      name: 'NOTIFICATIONS_SERVICE',
+      transport: Transport.REDIS,
+      options: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT ?? '6379'),
+      },
+    }]),
   ],
-  providers: [
-    NotificationsService,
-    NotificationsProcessor,
-  ],
+  providers: [NotificationsService],
   exports: [NotificationsService],
 })
 export class NotificationsModule {}

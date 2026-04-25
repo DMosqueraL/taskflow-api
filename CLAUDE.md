@@ -81,7 +81,7 @@ src/
 - Comentarios en tareas
 - Tests e2e
 
-### Nivel 7 — Escalar la arquitectura
+### Nivel 7 ✅ — Escalar la arquitectura
 - Microservicio de notificaciones
 - Rate limiting por tenant
 - Swagger auto-generado
@@ -138,7 +138,7 @@ npm run test:cov           # Cobertura
 - Formato de commits: `feat: Nivel X - descripción`
 - Repositorio: https://github.com/DMosqueraL/taskflow-api
 
-## Nivel actual: 6 ✅ (completado)
+## Nivel actual: 7 ✅ (completado)
 
 ## Notas importantes
 - `moduleFormat = "commonjs"` para compatibilidad NestJS
