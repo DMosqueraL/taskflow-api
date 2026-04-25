@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head><title>TaskFlow WS Test</title></head>
+<body>
+  <h2>TaskFlow — WebSocket Test</h2>
+  <div id="messages"></div>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script>
+    const socket = io('http://localhost:3005');
+    socket.on('connect', () => {
+      document.getElementById('messages').innerHTML += '<p>Conectado al servidor</p>';
+    });
+    socket.on('task.assigned', (data) => {
+      document.getElementById('messages').innerHTML += 
+        `<p>Tarea asignada: "${data.taskTitle}" a ${data.assignedToEmail}</p>`;
+    });
+  </script>
+</body>
+</html>

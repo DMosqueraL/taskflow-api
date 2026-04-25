@@ -16,9 +16,13 @@ import { AttachmentsModule } from './attachments/attachments.module';
 import { HealthModule } from './health/health.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
+    EventsModule,
+    EventEmitterModule.forRoot(),
     ThrottlerModule.forRoot([{
       ttl: 60000,    // ventana de 60 segundos
       limit: 30,     // máximo 30 requests por ventana

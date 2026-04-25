@@ -69,6 +69,6 @@ export class TasksController {
     @Body() assignTaskDto: AssignTaskDto,
     @CurrentUser() user,
   ) {
-    return this.tasksService.assign(id, assignTaskDto, user);
+    return this.tasksService.assign(id, assignTaskDto);
   }
 }

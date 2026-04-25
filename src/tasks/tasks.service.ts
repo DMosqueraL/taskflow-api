@@ -5,7 +5,8 @@ import { ProjectsService } from '../projects/projects.service';
 import { PrismaService } from '../common/services/prisma.service';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { AssignTaskDto } from './dto/assign-task.dto';
-import { NotificationsService } from 'src/notifications/notifications.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { TaskAssignedEvent } from '../events/events/task-assigned.event';
 
 @Injectable()
 export class TasksService {
@@ -13,7 +14,7 @@ export class TasksService {
   constructor(
     private readonly projectsService: ProjectsService,
     private readonly prisma: PrismaService,
-    private readonly notificationsService: NotificationsService
+    private readonly eventEmitter: EventEmitter2,
   ) { }
 
 
@@ -92,28 +93,27 @@ export class TasksService {
     });
   }
 
-  async assign(id: string, assignTaskDto: AssignTaskDto, user: any) {
-    const task = await this.findOne(id);
+  async assign(id: string, assignTaskDto: AssignTaskDto) {
+  const task = await this.findOne(id);
 
-    //verificar que el usuario a asignar exista
-    const userAssinged = await this.prisma.user.findUnique({
-      where: { id: assignTaskDto.assignedToId },
-    });
-    if (!userAssinged) {
-      throw new NotFoundException(`User not found.`);
-    }
-
-    //Actualizar la tarea con el usuario asignado
-    const updatedTask = await this.prisma.task.update({
-      where: { id },
-      data: {
-        assignedToId: assignTaskDto.assignedToId,
-      },
-    });
-
-    //Ingresar el job a la cola de notificaciones
-    await this.notificationsService.sendTaskAssigned(task.title, userAssinged.email);
-
-    return updatedTask;
+  const assignedUser = await this.prisma.user.findUnique({
+    where: { id: assignTaskDto.assignedToId },
+  });
+  if (!assignedUser) {
+    throw new NotFoundException('User not found');
   }
+
+  const updatedTask = await this.prisma.task.update({
+    where: { id },
+    data: { assignedToId: assignTaskDto.assignedToId },
+  });
+
+  // Emitir evento — ya no llamas a notificationsService directamente
+  this.eventEmitter.emit(
+    'task.assigned',
+    new TaskAssignedEvent(task.id, task.title, assignedUser.email, assignTaskDto.assignedToId),
+  );
+
+  return updatedTask;
+}
 }
