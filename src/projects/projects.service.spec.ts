@@ -2,6 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { PrismaService } from "../common/services/prisma.service";
 import { ProjectsService } from "./projects.service";
 import { NotFoundException } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 //Mock de PrismaService - Simulamos la BD para las pruebas
 const mockPrisma = {
@@ -25,6 +26,14 @@ describe('ProjectsService', () => {
             providers: [
                 ProjectsService,
                 PrismaService,
+                {
+                    provide: CACHE_MANAGER,
+                    useValue: {
+                        get: jest.fn().mockResolvedValue(null),
+                        set: jest.fn().mockResolvedValue(undefined),
+                        del: jest.fn().mockResolvedValue(undefined),
+                    },
+                },
             ],
         }).compile();
 
@@ -53,7 +62,7 @@ describe('ProjectsService', () => {
             const user = { organizationId: 'org1' };
             const pagination = { page: 1, limit: 10 };
 
-            const result = await service.findAll(user, pagination);
+            const result = await service.findAll(user, pagination) as any;
 
             expect(result.data).toEqual(mockProjects);
             expect(result.meta.total).toBe(2);

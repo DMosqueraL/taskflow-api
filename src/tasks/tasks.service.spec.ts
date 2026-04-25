@@ -3,10 +3,15 @@ import { PrismaService } from "../common/services/prisma.service";
 import { ProjectsService } from "../projects/projects.service";
 import { NotFoundException } from '@nestjs/common';
 import { TasksService } from "./tasks.service";
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 // Mock de ProjectsService
 const mockProjectsService = {
   findOne: jest.fn(),
+};
+
+const mockEventEmitter = {
+  emit: jest.fn(),
 };
 
 describe('TasksService', () => {
@@ -20,6 +25,7 @@ describe('TasksService', () => {
         TasksService,
         PrismaService,
         { provide: ProjectsService, useValue: mockProjectsService },
+        { provide: EventEmitter2, useValue: mockEventEmitter },
       ],
     }).compile();
 
