@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class IdGeneratorService {
-    generateId(): string {
-        return uuidv4();
-    }
+  generateId(): string {
+    return randomUUID();
+  }
 }

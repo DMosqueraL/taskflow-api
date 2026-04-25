@@ -74,7 +74,7 @@ src/
 - Logging estructurado
 - Tests unitarios con Jest (cobertura >70%)
 
-### Nivel 6 — Features de producto real
+### Nivel 6 ✅ — Features de producto real
 - Colas con BullMQ (notificaciones)
 - Caché con Redis
 - Upload de archivos adjuntos
@@ -138,7 +138,7 @@ npm run test:cov           # Cobertura
 - Formato de commits: `feat: Nivel X - descripción`
 - Repositorio: https://github.com/DMosqueraL/taskflow-api
 
-## Nivel actual: 5 ✅ (completado)
+## Nivel actual: 6 ✅ (completado)
 
 ## Notas importantes
 - `moduleFormat = "commonjs"` para compatibilidad NestJS

@@ -4,13 +4,16 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { ProjectsService } from '../projects/projects.service';
 import { PrismaService } from '../common/services/prisma.service';
 import { PaginationDto } from '../common/dto/pagination.dto';
+import { AssignTaskDto } from './dto/assign-task.dto';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Injectable()
 export class TasksService {
 
   constructor(
     private readonly projectsService: ProjectsService,
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
+    private readonly notificationsService: NotificationsService
   ) { }
 
 
@@ -87,5 +90,30 @@ export class TasksService {
         deletedAt: new Date(),
       },
     });
+  }
+
+  async assign(id: string, assignTaskDto: AssignTaskDto, user: any) {
+    const task = await this.findOne(id);
+
+    //verificar que el usuario a asignar exista
+    const userAssinged = await this.prisma.user.findUnique({
+      where: { id: assignTaskDto.assignedToId },
+    });
+    if (!userAssinged) {
+      throw new NotFoundException(`User not found.`);
+    }
+
+    //Actualizar la tarea con el usuario asignado
+    const updatedTask = await this.prisma.task.update({
+      where: { id },
+      data: {
+        assignedToId: assignTaskDto.assignedToId,
+      },
+    });
+
+    //Ingresar el job a la cola de notificaciones
+    await this.notificationsService.sendTaskAssigned(task.title, userAssinged.email);
+
+    return updatedTask;
   }
 }

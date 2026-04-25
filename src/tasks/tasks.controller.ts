@@ -8,6 +8,7 @@ import { Role } from 'generated/prisma/client';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { AssignTaskDto } from './dto/assign-task.dto';
 
 @Controller()
 @UseGuards(AuthGuard, RolesGuard)
@@ -39,5 +40,15 @@ export class TasksController {
   @Roles(Role.ADMIN)
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.tasksService.remove(id);
+  }
+
+  @Patch('tasks/:id/assign')
+  @Roles(Role.ADMIN, Role.LEADER)
+  assign(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() assignTaskDto: AssignTaskDto,
+    @CurrentUser() user,
+  ) {
+    return this.tasksService.assign(id, assignTaskDto, user);
   }
 }

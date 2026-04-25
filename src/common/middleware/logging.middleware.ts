@@ -1,6 +1,6 @@
 import { Injectable, Logger, NestMiddleware } from "@nestjs/common";
 import { Request, Response, NextFunction } from "express";
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class LoggingMiddleware implements NestMiddleware {
@@ -8,7 +8,7 @@ export class LoggingMiddleware implements NestMiddleware {
     private readonly logger = new Logger('HTTP');
 
     use(req: Request, res: Response, next: NextFunction) {
-        const requestId = uuidv4();
+        const requestId = randomUUID();
         const startTime = Date.now();
 
         req['requestId'] = requestId; // Adjuntar el requestId al request para que otros servicios lo usen
