@@ -192,7 +192,7 @@ PORT=3005
 - Local: http://localhost:3005
 - Producción: https://taskflow-api-sg4x.onrender.com
 
-### Estado: pendiente
+### Estado: pendiente 
 
 ## Notas importantes
 - `moduleFormat = "commonjs"` para compatibilidad NestJS
