@@ -1,126 +1,107 @@
-import { Test, TestingModule } from "@nestjs/testing";
-import { PrismaService } from "../common/services/prisma.service";
-import { ProjectsService } from "./projects.service";
-import { NotFoundException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import { ProjectsService } from './projects.service';
+import { CreateProjectUseCase } from './domain/use-cases/create-project.use-case';
+import { FindAllProjectsUseCase } from './domain/use-cases/find-all-projects.use-case';
+import { FindOneProjectUseCase } from './domain/use-cases/find-one-project.use-case';
+import { UpdateProjectUseCase } from './domain/use-cases/update-project.use-case';
+import { RemoveProjectUseCase } from './domain/use-cases/remove-project.use-case';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { NotFoundException } from '@nestjs/common';
 
-//Mock de PrismaService - Simulamos la BD para las pruebas
-const mockPrisma = {
-    project: {
-        create: jest.fn(),
-        findMany: jest.fn(),
-        findFirst: jest.fn(),
-        update: jest.fn(),
-        count: jest.fn(),
-    },
+const mockCreateUC = { execute: jest.fn() };
+const mockFindAllUC = { execute: jest.fn() };
+const mockFindOneUC = { execute: jest.fn() };
+const mockUpdateUC = { execute: jest.fn() };
+const mockRemoveUC = { execute: jest.fn() };
+const mockCache = {
+  get: jest.fn().mockResolvedValue(null),
+  set: jest.fn().mockResolvedValue(undefined),
+  del: jest.fn().mockResolvedValue(undefined),
 };
 
 describe('ProjectsService', () => {
+  let service: ProjectsService;
 
-    let service: ProjectsService;
-    let prisma: any;
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        ProjectsService,
+        { provide: CreateProjectUseCase, useValue: mockCreateUC },
+        { provide: FindAllProjectsUseCase, useValue: mockFindAllUC },
+        { provide: FindOneProjectUseCase, useValue: mockFindOneUC },
+        { provide: UpdateProjectUseCase, useValue: mockUpdateUC },
+        { provide: RemoveProjectUseCase, useValue: mockRemoveUC },
+        { provide: CACHE_MANAGER, useValue: mockCache },
+      ],
+    }).compile();
 
-    //Antes de cada test, se crea una instancia limpia del servicio
-    beforeEach(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            providers: [
-                ProjectsService,
-                PrismaService,
-                {
-                    provide: CACHE_MANAGER,
-                    useValue: {
-                        get: jest.fn().mockResolvedValue(null),
-                        set: jest.fn().mockResolvedValue(undefined),
-                        del: jest.fn().mockResolvedValue(undefined),
-                    },
-                },
-            ],
-        }).compile();
+    service = module.get<ProjectsService>(ProjectsService);
+    jest.clearAllMocks();
+  });
 
-        service = module.get<ProjectsService>(ProjectsService);
-        prisma = module.get<PrismaService>(PrismaService);
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
 
-        //Limpiar los mocks antes de cada test para evitar interferencias
-        jest.clearAllMocks();
+  describe('findAll', () => {
+    it('should return paginated projects', async () => {
+      const mockResult = {
+        data: [{ id: '1', name: 'Proyecto 1', organizationId: 'org1' }],
+        meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
+      };
+      mockFindAllUC.execute.mockResolvedValue(mockResult);
+
+      const user = { organizationId: 'org1' };
+      const pagination = { page: 1, limit: 10 };
+      const result = await service.findAll(user, pagination) as any;
+
+      expect(result.data).toEqual(mockResult.data);
+      expect(result.meta.total).toBe(1);
+    });
+  });
+
+  describe('findOne', () => {
+    it('should return a project by id', async () => {
+      const mockProject = { id: '1', name: 'Proyecto 1' };
+      mockFindOneUC.execute.mockResolvedValue(mockProject);
+
+      const result = await service.findOne('1');
+      expect(result).toEqual(mockProject);
     });
 
-    //Test #1: Verificar que el servicio exista
-    it('should be defined', () => {
-        expect(service).toBeDefined();
+    it('should throw NotFoundException if project does not exist', async () => {
+      mockFindOneUC.execute.mockRejectedValue(new NotFoundException());
+
+      await expect(service.findOne('id-falso')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('create', () => {
+    it('should create a new project', async () => {
+      const mockProject = { id: '1', name: 'Nuevo', organizationId: 'org1' };
+      mockCreateUC.execute.mockResolvedValue(mockProject);
+
+      const dto = { name: 'Nuevo', description: 'Desc' };
+      const user = { organizationId: 'org1' };
+      const result = await service.create(dto as any, user);
+
+      expect(result).toEqual(mockProject);
+    });
+  });
+
+  describe('remove', () => {
+    it('should soft delete a project', async () => {
+      const mockProject = { id: '1', organizationId: 'org1', deletedAt: new Date() };
+      mockRemoveUC.execute.mockResolvedValue(mockProject);
+
+      await service.remove('1');
+      expect(mockRemoveUC.execute).toHaveBeenCalledWith('1');
     });
 
-    //Test #2: Verificar que findAll retorna todos los proyectos
-    describe('findAll', () => {
-        it('should return paginated projects', async () => {
-            const mockProjects = [
-                { id: '1', name: 'Proyecto 1', organizationId: 'org1', deletedAt: null },
-                { id: '2', name: 'Proyecto 2', organizationId: 'org1', deletedAt: null },
-            ];
-            prisma.project.findMany.mockResolvedValue(mockProjects);
-            prisma.project.count.mockResolvedValue(2);
+    it('should throw NotFoundException if project does not exist', async () => {
+      mockRemoveUC.execute.mockRejectedValue(new NotFoundException());
 
-            const user = { organizationId: 'org1' };
-            const pagination = { page: 1, limit: 10 };
-
-            const result = await service.findAll(user, pagination) as any;
-
-            expect(result.data).toEqual(mockProjects);
-            expect(result.meta.total).toBe(2);
-            expect(result.meta.page).toBe(1);
-        });
+      await expect(service.remove('id-falso')).rejects.toThrow(NotFoundException);
     });
-
-    //Test #3: Verificar que findOne retorna un proyecto específico
-    describe('findOne', () => {
-        it('should return a project by id', async () => {
-            const mockProject = { id: '1', name: 'Proyecto 1', deletedAt: null };
-            prisma.project.findFirst.mockResolvedValue(mockProject);
-
-            const result = await service.findOne('1');
-
-            expect(result).toEqual(mockProject);
-        });
-        it('should throw NotFoundException if project does not exist', async () => {
-            prisma.project.findFirst.mockResolvedValue(null);
-            await expect(service.findOne('id-falso')).rejects.toThrow(NotFoundException);
-        });
-    });
-
-    //Test #4: Verificar que create crea un nuevo proyecto
-    describe('create', () => {
-        it('should create a new project', async () => {
-            const mockProject = { id: '1', name: 'Nuevo Proyecto', organizationId: 'org1' }
-            prisma.project.create.mockResolvedValue(mockProject);
-
-            const dto = { name: 'Nuevo Proyecto', description: 'Descripción del proyecto' };
-            const user = { organizationId: 'org1' };
-
-            const result = await service.create(dto as any, user);
-
-            expect(result).toEqual(mockProject);
-        });
-    });
-
-    //Test #5: Verificar que remove hace soft delete de un proyecto
-    describe('remove', () => {
-        it('should soft delete a project', async () => {
-            const mockProject = { id: '1', name: 'Proyecto1', deletedAt: null };
-            const deletedProject = { ...mockProject, deletedAt: expect.any(Date) };
-
-            prisma.project.findFirst.mockResolvedValue(mockProject);
-            prisma.project.update.mockResolvedValue(deletedProject);
-
-            await service.remove('1');
-
-            expect(prisma.project.update).toHaveBeenCalledWith({
-                where: { id: '1' },
-                data: { deletedAt: expect.any(Date) },
-            });
-        });
-
-        it('should throw NotFoundException if project does not exist', async () => {
-            prisma.project.findFirst.mockResolvedValue(null);
-            await expect(service.remove('id-falso')).rejects.toThrow(NotFoundException);
-        });
-    });
+  });
 });
