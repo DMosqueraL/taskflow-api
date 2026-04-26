@@ -22,4 +22,4 @@ COPY package*.json ./
 
 EXPOSE 3005
 
-CMD ["node", "dist/src/main.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed && node dist/src/main.js"]
