@@ -12,12 +12,14 @@ COPY . .
 RUN npx prisma generate
 RUN npm run build
 
-# Etapa 3 — Producción (imagen final liviana)
+# Etapa 3 — Producción
 FROM node:20-alpine AS production
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/generated ./generated
+COPY --from=build /app/prisma ./prisma
+COPY --from=build /app/prisma.config.ts ./prisma.config.ts
 COPY package*.json ./
 
 EXPOSE 3005
